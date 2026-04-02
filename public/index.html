@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kayou Image — AI Generative Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL@20..48,100..700,0..1" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080F;--bg2:#0B0E18;--surface:#111827;--surface2:#1A2234;--surface3:#243044;
+  --primary:#B0B8C8;--primary-dim:rgba(176,184,200,0.10);
+  --silver:#C0C0D0;--cyan:#06B6D4;--green:#10B981;--amber:#F59E0B;--red:#EF4444;
+  --text:#F1F5F9;--text2:#94A3B8;--text3:#475569;
+  --glass:rgba(17,24,39,0.6);--glass-border:rgba(192,192,210,0.08);
+  --radius:20px;--radius-md:14px;--radius-sm:10px;
+}
+html{font-family:'Archivo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+h1,h2,h3,h4,h5{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.02em}
+button{font-family:'Archivo',sans-serif;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:'Archivo',sans-serif;outline:none;border:none}
+.ms{font-family:'Material Symbols Rounded';font-size:20px;vertical-align:middle;font-weight:normal;
+  font-style:normal;line-height:1;-webkit-font-smoothing:antialiased}
+
+/* ═══ LIQUID SILVER WAVE AMBIENT ═══ */
+.ambient{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+
+/* SVG liquid wave */
+.ambient .silver-waves{position:absolute;bottom:-5%;left:0;width:100%;height:60%;opacity:0.06}
+.ambient .silver-waves svg{width:100%;height:100%}
+
+/* Metallic sheen sweep */
+.ambient .sheen{position:absolute;top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(105deg,transparent 40%,rgba(220,225,235,0.04) 45%,rgba(255,255,255,0.06) 50%,rgba(220,225,235,0.04) 55%,transparent 60%);
+  animation:sheenSweep 8s ease-in-out infinite}
+@keyframes sheenSweep{0%{left:-100%}50%{left:150%}100%{left:150%}}
+
+/* Soft silver glow spots */
+.ambient .glow{position:absolute;border-radius:50%;filter:blur(100px)}
+.ambient .glow-1{width:500px;height:500px;top:-10%;right:10%;
+  background:radial-gradient(circle,rgba(192,196,210,0.12),transparent 70%);animation:glowDrift1 15s ease-in-out infinite}
+.ambient .glow-2{width:400px;height:400px;bottom:5%;left:5%;
+  background:radial-gradient(circle,rgba(210,215,225,0.08),transparent 70%);animation:glowDrift2 20s ease-in-out infinite}
+@keyframes glowDrift1{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,30px)}}
+@keyframes glowDrift2{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-25px)}}
+
+/* Subtle noise texture */
+.ambient .noise{position:absolute;inset:0;opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px}
+
+/* ═══ LAYOUT ═══ */
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+/* ═══ NAV ═══ */
+.nav{position:sticky;top:0;z-index:50;padding:16px 32px;
+  background:rgba(6,8,15,0.75);backdrop-filter:blur(20px) saturate(1.5);
+  border-bottom:1px solid var(--glass-border)}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-mark{width:38px;height:38px;border-radius:10px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#8A9AAF,#D4D8E0,#F0F2F5,#D4D8E0);display:flex;align-items:center;justify-content:center}
+.logo-mark::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.2));pointer-events:none}
+.logo-mark span{font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#fff;position:relative;z-index:1}
+.logo-text{display:flex;flex-direction:column;gap:0}
+.logo-text h1{font-size:18px;font-weight:700;color:var(--text);line-height:1.2}
+.logo-text p{font-size:11px;color:var(--text3);font-weight:400;letter-spacing:0.08em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:16px}
+.nav-badge{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  background:rgba(200,205,215,0.08);color:#C0C8D4;border:1px solid rgba(200,205,215,0.15)}
+.nav-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)}
+.nav-stat b{color:var(--text2)}
+
+/* ═══ MAIN ═══ */
+.main{flex:1;max-width:1400px;width:100%;margin:0 auto;padding:0 32px}
+
+/* ═══ HERO ═══ */
+.hero{text-align:center;padding:64px 0 48px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:24px;
+  background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);color:var(--green);
+  font-size:12px;font-weight:500;margin-bottom:24px}
+.hero-badge .ms{font-size:14px}
+.hero h2{font-size:52px;font-weight:700;line-height:1.1;margin-bottom:16px;max-width:700px;margin-left:auto;margin-right:auto}
+.hero h2 .grad{background:linear-gradient(135deg,#8A9AAF 0%,#D4D8E0 25%,#FFFFFF 50%,#D4D8E0 75%,#8A9AAF 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:300% auto;
+  animation:silverShift 5s ease-in-out infinite}
+@keyframes silverShift{0%,100%{background-position:0% center}50%{background-position:100% center}}
+.hero-sub{color:var(--text2);font-size:17px;line-height:1.6;max-width:520px;margin:0 auto 40px}
+
+/* ═══ STUDIO PANEL ═══ */
+.studio{background:var(--surface);border:1px solid var(--glass-border);border-radius:var(--radius);
+  margin-bottom:24px;position:relative}
+.studio::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(176,184,200,0.3),rgba(192,192,208,0.2),transparent)}
+.studio-top{padding:24px 28px 0;display:flex;align-items:flex-start;gap:16px}
+.studio-textarea{flex:1;position:relative}
+.studio-textarea textarea{width:100%;background:var(--bg2);color:var(--text);font-size:15px;line-height:1.7;
+  resize:none;height:100px;padding:16px 20px;border-radius:var(--radius-md);
+  border:1px solid rgba(255,255,255,0.04);transition:border-color .3s,box-shadow .3s}
+.studio-textarea textarea::placeholder{color:var(--text3)}
+.studio-textarea textarea:focus{border-color:rgba(176,184,200,0.3);box-shadow:0 0 0 3px rgba(176,184,200,0.08)}
+.char-count{position:absolute;bottom:10px;right:14px;font-size:11px;color:var(--text3)}
+.ref-img-bar{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;
+  border-radius:8px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15)}
+.ref-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover}
+.ref-label{font-size:11px;color:var(--green);flex:1}
+.ref-remove{background:none;color:var(--text3);padding:4px;border-radius:4px;transition:color .2s}
+.ref-remove:hover{color:var(--red)}
+.studio-side{display:flex;flex-direction:column;gap:8px;min-width:160px}
+.btn-gen{width:100%;padding:14px 24px;border-radius:var(--radius-md);font-size:15px;font-weight:600;color:#0B0E18;
+  background:linear-gradient(135deg,#A0A8B8,#D4D8E0,#F0F2F5,#D4D8E0,#A0A8B8);background-size:300% auto;
+  animation:silverBtn 4s ease-in-out infinite;position:relative;overflow:hidden;
+  transition:transform .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+@keyframes silverBtn{0%,100%{background-position:0% center}50%{background-position:100% center}}
+.btn-gen::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.4) 50%,transparent 60%);
+  animation:btnSheen 3s ease-in-out infinite;pointer-events:none}
+@keyframes btnSheen{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+.btn-gen:hover{transform:translateY(-1px);box-shadow:0 8px 32px rgba(200,205,215,0.3)}
+.btn-gen:active{transform:scale(0.97)}
+.btn-gen:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-gen .spin{width:18px;height:18px;border:2px solid rgba(255,255,255,0.25);border-top-color:#fff;
+  border-radius:50%;animation:spin .6s linear infinite;display:none}
+.btn-gen.loading .spin{display:block}
+.btn-gen.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn-enhance{width:100%;padding:10px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;
+  background:rgba(6,182,212,0.08);color:var(--cyan);border:1px solid rgba(6,182,212,0.12);
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-enhance:hover{background:rgba(6,182,212,0.15);border-color:rgba(6,182,212,0.25)}
+
+/* Controls */
+.studio-controls{padding:16px 28px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ctrl{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.04);color:var(--text2);transition:border-color .2s}
+.ctrl:hover{border-color:rgba(176,184,200,0.2)}
+.ctrl .ms{font-size:16px;color:var(--text3)}
+.ctrl select{background:transparent;color:var(--text);font-size:12px;border:none;cursor:pointer;font-family:inherit}
+.ctrl select option{background:var(--surface);color:var(--text)}
+.ctrl-sep{width:1px;height:20px;background:var(--surface3);margin:0 4px}
+
+/* Custom model picker */
+.model-picker{position:relative}
+.model-picker-btn{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.04);color:var(--text2);cursor:pointer;transition:border-color .2s}
+.model-picker-btn:hover{border-color:rgba(176,184,200,0.2)}
+.model-picker-btn .ms{font-size:16px;color:var(--text3)}
+.model-picker-btn .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.model-picker-btn .status-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(16,185,129,0.5)}
+.model-picker-btn .status-dot.down{background:var(--red);box-shadow:0 0 6px rgba(239,68,68,0.4)}
+.model-picker-btn .status-dot.checking{background:var(--amber);animation:pulse 1.5s infinite}
+.model-dropdown{position:absolute;top:calc(100% + 6px);left:0;min-width:260px;background:var(--surface);
+  border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:6px;z-index:60;
+  box-shadow:0 12px 40px rgba(0,0,0,0.5);display:none;backdrop-filter:blur(20px)}
+.model-dropdown.open{display:block}
+.model-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;cursor:pointer;
+  transition:background .15s;font-size:13px;color:var(--text2)}
+.model-opt:hover{background:rgba(255,255,255,0.04)}
+.model-opt.active{background:rgba(176,184,200,0.08);color:var(--text)}
+.model-opt.disabled{opacity:0.35;cursor:not-allowed}
+.model-opt .opt-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:rgba(176,184,200,0.06);flex-shrink:0}
+.model-opt .opt-icon .ms{font-size:18px;color:var(--text3)}
+.model-opt .opt-info{flex:1;display:flex;flex-direction:column;gap:1px}
+.model-opt .opt-name{font-weight:500;font-size:13px}
+.model-opt .opt-desc{font-size:10px;color:var(--text3)}
+.model-opt .opt-status{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:500;flex-shrink:0}
+.model-opt .opt-status.ok{color:var(--green)}
+.model-opt .opt-status.down{color:var(--red)}
+.model-opt .opt-status.checking{color:var(--amber)}
+.model-opt .opt-status .ms{font-size:14px}
+.shortcut{font-size:10px;color:var(--text3);padding:3px 6px;border-radius:4px;background:var(--bg);
+  border:1px solid rgba(255,255,255,0.04);margin-left:auto}
+
+/* Progress */
+.progress{padding:0 28px 20px;display:none}
+.progress.active{display:block}
+.progress-track{height:3px;background:var(--bg2);border-radius:2px;overflow:hidden}
+.progress-bar{height:100%;width:0;border-radius:2px;transition:width .3s;
+  background:linear-gradient(90deg,#8A9AAF,#D4D8E0,#FFFFFF,#D4D8E0,#8A9AAF);background-size:200% auto;
+  animation:silverShift 3s ease-in-out infinite}
+.progress-info{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.progress-info span{font-size:11px;color:var(--text3)}
+.progress-info .step{color:var(--primary)}
+
+/* ═══ INSPIRATION CHIPS ═══ */
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:56px}
+.chip{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:400;color:var(--text2);
+  background:var(--surface);border:1px solid rgba(255,255,255,0.04);cursor:pointer;
+  transition:all .25s;white-space:nowrap}
+.chip:hover{color:var(--primary);border-color:rgba(176,184,200,0.25);background:var(--primary-dim);
+  transform:translateY(-1px)}
+
+/* ═══ STATS BAR ═══ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:56px}
+.stat-card{padding:20px;border-radius:var(--radius-md);background:var(--surface);
+  border:1px solid var(--glass-border);text-align:center;transition:transform .2s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card .val{font-family:'Space Grotesk';font-size:28px;font-weight:700;
+  background:linear-gradient(135deg,#8A9AAF,#D4D8E0,#FFFFFF,#D4D8E0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-card .label{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* ═══ GALLERY ═══ */
+.gallery-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.gallery-head h3{font-size:20px;font-weight:600;display:flex;align-items:center;gap:10px}
+.gallery-head h3 .count{font-size:12px;color:var(--text3);font-weight:400;
+  padding:2px 10px;border-radius:10px;background:var(--surface)}
+.gallery-tabs{display:flex;gap:4px}
+.gallery-tab{padding:6px 14px;border-radius:6px;font-size:12px;color:var(--text3);background:transparent;
+  transition:all .2s}
+.gallery-tab.active,.gallery-tab:hover{color:var(--text);background:var(--surface)}
+
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;
+  margin-bottom:60px}
+.card{border-radius:var(--radius-md);overflow:hidden;background:var(--surface);
+  border:1px solid rgba(255,255,255,0.03);position:relative;cursor:pointer;
+  transition:transform .3s cubic-bezier(.25,.8,.25,1),box-shadow .3s}
+.card:hover{transform:translateY(-6px) scale(1.01);
+  box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 0 1px rgba(176,184,200,0.1)}
+.card img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover;background:var(--bg2)}
+.card .card-overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;
+  background:linear-gradient(to top,rgba(6,8,15,0.95) 0%,rgba(6,8,15,0.4) 40%,transparent 60%);
+  opacity:0;transition:opacity .3s;padding:20px}
+.card:hover .card-overlay{opacity:1}
+.card .card-prompt{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:8px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .card-meta{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.card .card-model{font-size:10px;color:var(--cyan);padding:3px 8px;border-radius:4px;
+  background:rgba(6,182,212,0.1);font-weight:500}
+.card .card-date{font-size:10px;color:var(--text3)}
+.card .card-actions{display:flex;gap:6px}
+.card .card-actions button{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);color:var(--text2);transition:all .2s}
+.card .card-actions button:hover{background:rgba(176,184,200,0.3);color:#fff}
+.card .card-actions button .ms{font-size:16px}
+
+/* ═══ EMPTY STATE ═══ */
+.empty{text-align:center;padding:100px 20px;border-radius:var(--radius);
+  border:1px dashed var(--surface3);margin-bottom:60px}
+.empty-icon{width:80px;height:80px;margin:0 auto 20px;border-radius:50%;
+  background:var(--primary-dim);display:flex;align-items:center;justify-content:center}
+.empty-icon .ms{font-size:36px;color:var(--primary);opacity:0.5}
+.empty h4{font-size:18px;font-weight:600;margin-bottom:6px;color:var(--text2)}
+.empty p{font-size:13px;color:var(--text3)}
+
+/* ═══ FEATURES ═══ */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:60px}
+.feat{padding:24px;border-radius:var(--radius-md);background:var(--surface);
+  border:1px solid var(--glass-border);transition:transform .2s,border-color .2s}
+.feat:hover{transform:translateY(-2px);border-color:rgba(176,184,200,0.15)}
+.feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;font-size:20px}
+.feat h5{font-size:14px;font-weight:600;margin-bottom:6px}
+.feat p{font-size:12px;color:var(--text3);line-height:1.6}
+
+/* ═══ FOOTER ═══ */
+.footer{padding:32px;text-align:center;border-top:1px solid var(--glass-border)}
+.footer p{font-size:12px;color:var(--text3)}
+.footer a{color:var(--primary);text-decoration:none}
+
+/* ═══ LIGHTBOX ═══ */
+.lightbox{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.95);display:none;
+  align-items:center;justify-content:center;padding:40px;cursor:zoom-out;
+  backdrop-filter:blur(20px)}
+.lightbox.active{display:flex}
+.lightbox img{max-width:85vw;max-height:85vh;border-radius:16px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05)}
+.lb-close{position:fixed;top:24px;right:28px;width:44px;height:44px;border-radius:12px;
+  background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);color:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:201;
+  border:1px solid rgba(255,255,255,0.08);transition:background .2s}
+.lb-close:hover{background:rgba(255,255,255,0.12)}
+.lb-info{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+  background:var(--surface);padding:12px 24px;border-radius:12px;z-index:201;
+  border:1px solid var(--glass-border);max-width:600px;text-align:center;
+  font-size:13px;color:var(--text2);cursor:default}
+
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--surface);color:var(--text);padding:12px 24px;border-radius:12px;
+  font-size:13px;font-weight:500;z-index:300;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
+  box-shadow:0 12px 40px rgba(0,0,0,0.4);border:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:8px}
+.toast .ms{font-size:18px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{border-color:rgba(239,68,68,0.3)}
+.toast.error .ms{color:var(--red)}
+.toast.success .ms{color:var(--green)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .hero h2{font-size:36px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .features{grid-template-columns:1fr}
+  .studio-top{flex-direction:column}
+  .studio-side{flex-direction:row;min-width:auto}
+  .studio-side .btn-gen{flex:1}
+  .studio-side .btn-enhance{flex:1}
+}
+@media(max-width:640px){
+  .nav{padding:12px 16px}
+  .main{padding:0 16px}
+  .hero{padding:40px 0 32px}
+  .hero h2{font-size:28px}
+  .gallery{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .nav-stat{display:none}
+}
+@media(max-width:420px){
+  .gallery{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient">
+  <div class="noise"></div>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="sheen"></div>
+  <div class="silver-waves">
+    <svg viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sg1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#A0A8B8;stop-opacity:0.5"/>
+          <stop offset="30%" style="stop-color:#D0D4DC;stop-opacity:0.8"/>
+          <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:1"/>
+          <stop offset="70%" style="stop-color:#D0D4DC;stop-opacity:0.8"/>
+          <stop offset="100%" style="stop-color:#A0A8B8;stop-opacity:0.5"/>
+        </linearGradient>
+        <linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#B8BCC8;stop-opacity:0.3"/>
+          <stop offset="40%" style="stop-color:#E0E2E8;stop-opacity:0.6"/>
+          <stop offset="60%" style="stop-color:#C8CCD6;stop-opacity:0.5"/>
+          <stop offset="100%" style="stop-color:#B8BCC8;stop-opacity:0.3"/>
+        </linearGradient>
+      </defs>
+      <path fill="url(#sg1)" opacity="0.4">
+        <animate attributeName="d" dur="10s" repeatCount="indefinite" values="
+          M0,300 C180,250 360,350 540,300 C720,250 900,350 1080,300 C1260,250 1440,300 1440,300 L1440,600 L0,600 Z;
+          M0,320 C180,370 360,270 540,320 C720,370 900,270 1080,320 C1260,370 1440,320 1440,320 L1440,600 L0,600 Z;
+          M0,300 C180,250 360,350 540,300 C720,250 900,350 1080,300 C1260,250 1440,300 1440,300 L1440,600 L0,600 Z"/>
+      </path>
+      <path fill="url(#sg2)" opacity="0.3">
+        <animate attributeName="d" dur="14s" repeatCount="indefinite" values="
+          M0,350 C200,300 400,400 600,350 C800,300 1000,400 1200,350 C1400,300 1440,350 1440,350 L1440,600 L0,600 Z;
+          M0,370 C200,420 400,320 600,370 C800,420 1000,320 1200,370 C1400,420 1440,370 1440,370 L1440,600 L0,600 Z;
+          M0,350 C200,300 400,400 600,350 C800,300 1000,400 1200,350 C1400,300 1440,350 1440,350 L1440,600 L0,600 Z"/>
+      </path>
+      <path fill="url(#sg1)" opacity="0.2">
+        <animate attributeName="d" dur="18s" repeatCount="indefinite" values="
+          M0,400 C240,360 480,440 720,400 C960,360 1200,440 1440,400 L1440,600 L0,600 Z;
+          M0,420 C240,460 480,380 720,420 C960,460 1200,380 1440,420 L1440,600 L0,600 Z;
+          M0,400 C240,360 480,440 720,400 C960,360 1200,440 1440,400 L1440,600 L0,600 Z"/>
+      </path>
+    </svg>
+  </div>
+</div>
+
+<div class="page" id="page"></div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lb-close" onclick="closeLightbox()"><span class="ms">close</span></div>
+  <img id="lb-img" src="" alt="">
+  <div class="lb-info" id="lb-info" onclick="event.stopPropagation()"></div>
+</div>
+
+<div class="toast" id="toast"><span class="ms" id="toast-icon">check_circle</span><span id="toast-msg"></span></div>
+
+<script>
+const PROXY = '/api/generate';
+const MODELS = [
+  { id:'flux2-klein', name:'FLUX.2 Klein', short:'FLUX 2', endpoint:'https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.2-klein-4b', fmt:'flux', status:'ok', desc:'Next-gen, fast + quality', icon:'new_releases' },
+  { id:'flux-schnell', name:'FLUX.1 Schnell', short:'FLUX Fast', endpoint:'https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell', fmt:'flux', status:'ok', desc:'Lightning fast generation', icon:'bolt' },
+  { id:'sd3', name:'Stable Diffusion 3', short:'SD3', endpoint:'https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-3-medium', fmt:'sd3', status:'ok', desc:'High quality, detailed', icon:'auto_awesome' },
+  { id:'flux-dev', name:'FLUX.1 Dev', short:'FLUX HQ', endpoint:'https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-dev', fmt:'flux', status:'checking', desc:'Best quality, slower', icon:'hd' },
+];
+
+const INSPIRATIONS = [
+  'Cyberpunk Tokyo at midnight, neon rain reflections',
+  'Ethereal forest with bioluminescent mushrooms',
+  'Vintage 70s sci-fi movie poster, retro futurism',
+  'Surreal floating islands above ocean clouds',
+  'Portrait of an astronaut in a flower garden',
+  'Isometric miniature medieval village, tilt-shift',
+  'Abstract liquid chrome sculpture, studio lighting',
+  'Cozy cabin interior during a blizzard, fireplace glow',
+  'Underwater city with glass domes, sunlight rays',
+  'Dark fantasy castle on a cliff, lightning storm',
+];
+
+let images = [];
+let generating = false;
+let genCount = parseInt(localStorage.getItem('kayou-gen-count') || '0');
+
+// Load images from server
+async function loadImages(){
+  try{ images = await (await fetch('/api/meta')).json(); }catch(e){ images=[]; }
+}
+async function saveImages(){
+  try{ await fetch('/api/meta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(images)}); }catch(e){}
+}
+
+function render() {
+  // Preserve current prompt text across re-renders
+  const existingPrompt = document.getElementById('prompt');
+  if(existingPrompt && existingPrompt.value) window._pendingPrompt = existingPrompt.value;
+  const page = document.getElementById('page');
+  page.innerHTML = `
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo">
+        <div class="logo-mark"><span>K</span></div>
+        <div class="logo-text">
+          <h1>Kayou Image</h1>
+          <p>Generative Studio</p>
+        </div>
+      </div>
+      <div class="nav-right">
+        <div class="nav-stat"><span class="ms" style="font-size:14px;color:var(--amber)">bolt</span> <b>${genCount}</b>&nbsp;generated</div>
+        <div class="nav-badge"><div class="dot"></div>NVIDIA NIM</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-badge"><span class="ms">auto_awesome</span> Free AI Image Generation</div>
+      <h2>Imagine it.<br><span class="grad">Create it instantly.</span></h2>
+      <p class="hero-sub">Generate stunning visuals with FLUX and Stable Diffusion models — powered by NVIDIA NIM, completely free.</p>
+    </section>
+
+    <!-- STUDIO -->
+    <div class="studio">
+      <div class="studio-top">
+        <div class="studio-textarea">
+          <textarea id="prompt" placeholder="Describe your vision... Be detailed for best results.">${window._pendingPrompt||''}</textarea>
+          <div class="char-count"><span id="char-num">0</span>/5000</div>
+          <div class="ref-img-bar" id="ref-bar" style="display:${window._refImg?'flex':'none'}">
+            <img src="${window._refImg||''}" class="ref-thumb" id="ref-thumb">
+            <span class="ref-label">Reference image loaded — prompt will remix this</span>
+            <button class="ref-remove" onclick="clearRef()"><span class="ms" style="font-size:16px">close</span></button>
+          </div>
+        </div>
+        <div class="studio-side">
+          <button class="btn-gen ${generating?'loading':''}" onclick="generate()" ${generating?'disabled':''}>
+            <div class="spin"></div>
+            <span class="ms btn-label">auto_awesome</span>
+            <span class="btn-label">${generating?'Creating...':'Generate'}</span>
+          </button>
+          <button class="btn-enhance" onclick="enhancePrompt()">
+            <span class="ms" style="font-size:14px">magic_button</span> Enhance prompt
+          </button>
+        </div>
+      </div>
+      <div class="studio-controls">
+        <div class="model-picker">
+          <input type="hidden" id="model" value="${window._selModel||0}">
+          <div class="model-picker-btn" onclick="toggleModelDropdown(event)">
+            <span class="ms">smart_toy</span>
+            <span>${MODELS[window._selModel||0].name}</span>
+            <span class="status-dot ${MODELS[window._selModel||0].status}"></span>
+            <span class="ms" style="font-size:14px;margin-left:auto">expand_more</span>
+          </div>
+          <div class="model-dropdown" id="model-dropdown">
+            ${MODELS.map((m,i)=>{
+              const STATUS_ICON = m.status==='ok'?'verified':m.status==='down'?'cancel':'pending';
+              return `<div class="model-opt ${i===(window._selModel||0)?'active':''} ${m.status==='down'?'disabled':''}"
+                onclick="${m.status==='down'?'':'selectModel('+i+',event)'}">
+                <div class="opt-icon"><span class="ms">${m.icon}</span></div>
+                <div class="opt-info">
+                  <div class="opt-name">${m.name}</div>
+                  <div class="opt-desc">${m.desc}</div>
+                </div>
+                <div class="opt-status ${m.status}"><span class="ms">${STATUS_ICON}</span>${m.status==='ok'?'Live':m.status==='down'?'Offline':'...'}</div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="ctrl">
+          <span class="ms">aspect_ratio</span>
+          <select id="ratio">
+            <option value="1024x1024">1:1 Square</option>
+            <option value="1344x768">16:9 Wide</option>
+            <option value="768x1344">9:16 Portrait</option>
+          </select>
+        </div>
+        <div class="ctrl">
+          <span class="ms">tune</span>
+          <select id="steps">
+            <option value="25">25 steps</option>
+            <option value="30">30 steps</option>
+            <option value="40">40 steps</option>
+            <option value="50">50 steps — HQ</option>
+          </select>
+        </div>
+        <div class="ctrl-sep"></div>
+        <div class="ctrl" style="border:none;background:none;padding:0">
+          <span class="ms" style="font-size:14px">keyboard</span>
+          <span style="font-size:11px;color:var(--text3)">Cmd+Enter</span>
+        </div>
+      </div>
+      <div class="progress ${generating?'active':''}" id="progress">
+        <div class="progress-track"><div class="progress-bar" id="pbar"></div></div>
+        <div class="progress-info"><span class="step" id="pstep">Preparing...</span><span id="ppct">0%</span></div>
+      </div>
+    </div>
+
+    <!-- CHIPS -->
+    <div class="chips">
+      ${INSPIRATIONS.map(p=>`<button class="chip" onclick="usePrompt(\`${p.replace(/`/g,"'")}\`)">${p}</button>`).join('')}
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-card"><div class="val">${genCount}</div><div class="label">Images Created</div></div>
+      <div class="stat-card"><div class="val">${MODELS.filter(m=>m.status==='ok').length}/${MODELS.length}</div><div class="label">Models Live</div></div>
+      <div class="stat-card"><div class="val">${images.length}</div><div class="label">In Gallery</div></div>
+      <div class="stat-card"><div class="val">Free</div><div class="label">Forever</div></div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon" style="background:rgba(176,184,200,0.1);color:var(--primary)"><span class="ms">smart_toy</span></div>
+        <h5>4 AI Models</h5>
+        <p>SD3, FLUX Schnell, FLUX Dev, and the new FLUX 2 Klein. Each tuned for different speed/quality tradeoffs.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" style="background:rgba(192,192,208,0.1);color:var(--silver)"><span class="ms">bolt</span></div>
+        <h5>Instant Generation</h5>
+        <p>FLUX Schnell and FLUX 2 Klein deliver images in seconds. Real-time health monitoring on all models.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon" style="background:rgba(6,182,212,0.1);color:var(--cyan)"><span class="ms">refresh</span></div>
+        <h5>Remix & Upscale</h5>
+        <p>One-click variations of any image. Upscale with enhanced prompts and max steps for print-ready quality.</p>
+      </div>
+    </div>
+
+    <!-- GALLERY -->
+    <div class="gallery-head">
+      <h3>Your Gallery <span class="count">${images.length}</span></h3>
+      ${images.length > 0 ? `<div class="gallery-tabs">
+        <button class="gallery-tab active" onclick="clearGallery()">Clear All</button>
+      </div>` : ''}
+    </div>
+
+    ${images.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon"><span class="ms">image</span></div>
+        <h4>Your canvas awaits</h4>
+        <p>Type a prompt and generate your first masterpiece</p>
+      </div>
+    ` : `
+      <div class="gallery">
+        ${images.map((img,i)=>`
+          <div class="card" onclick="openLightbox(${i})">
+            <img src="${img.url}" alt="" loading="lazy">
+            <div class="card-overlay">
+              <div class="card-prompt">${esc(img.prompt)}</div>
+              <div class="card-meta">
+                <span class="card-model">${img.model}</span>
+                <span class="card-date">${timeAgo(img.date)}</span>
+              </div>
+              <div class="card-actions">
+                <button onclick="event.stopPropagation();downloadImg(${i})" title="Download"><span class="ms">download</span></button>
+                <button onclick="event.stopPropagation();remixImg(${i})" title="Remix — generate variation"><span class="ms">refresh</span></button>
+                <button onclick="event.stopPropagation();upscaleImg(${i})" title="Upscale with more steps"><span class="ms">zoom_in</span></button>
+                <button onclick="event.stopPropagation();copyPrompt(${i})" title="Copy prompt"><span class="ms">content_copy</span></button>
+                <button onclick="event.stopPropagation();deleteImg(${i})" title="Delete"><span class="ms">delete</span></button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `}
+  </main>
+
+  <footer class="footer">
+    <p>Kayou Image Generative &mdash; Built by <a href="#">Puzzle Intelligence</a> &bull; Powered by NVIDIA NIM</p>
+  </footer>
+  `;
+
+  const ta = document.getElementById('prompt');
+  if(ta){
+    ta.addEventListener('input', ()=>{
+      document.getElementById('char-num').textContent = ta.value.length;
+    });
+    document.getElementById('char-num').textContent = ta.value.length;
+  }
+}
+
+function esc(s){ return s.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+function timeAgo(d){
+  const s=Math.floor((Date.now()-new Date(d))/1000);
+  if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';
+}
+
+function usePrompt(p){ window._pendingPrompt=p; render(); document.getElementById('prompt').focus(); }
+
+function toggleModelDropdown(ev){
+  ev.stopPropagation();
+  const dd=document.getElementById('model-dropdown');
+  dd.classList.toggle('open');
+}
+function selectModel(i,ev){
+  if(ev)ev.stopPropagation();
+  window._selModel=i;
+  render();
+}
+document.addEventListener('click',()=>{
+  const dd=document.getElementById('model-dropdown');
+  if(dd)dd.classList.remove('open');
+});
+
+function enhancePrompt(){
+  const ta=document.getElementById('prompt');
+  if(!ta.value.trim()){toast('Type a prompt first','error');return}
+  let p=ta.value.trim();
+
+  // ═══ STEP 1: SAFETY FILTER — Replace restricted words ═══
+  const SAFE_SWAPS=[
+    [/\b(firing|shooting|shoots?|fires?)\b/gi,'standing heroically'],
+    [/\b(gun|rifle|pistol|weapon|firearm|shotgun|revolver|machine\s*gun)\b/gi,'equipment'],
+    [/\b(kill(ing|s|ed)?|murder(ing|s|ed)?|die(s|d)?|death)\b/gi,'dramatic moment'],
+    [/\b(blood(y)?|bleed(ing)?|gore|gory)\b/gi,'intense'],
+    [/\b(nude|naked|nsfw|explicit|sexy)\b/gi,'elegant'],
+    [/\b(bomb(ing|s)?|explo(de|sion|ding))\b/gi,'dramatic scene'],
+    [/\b(attack(ing|s)?|assault(ing)?|fight(ing)?|combat)\b/gi,'action pose'],
+    [/\b(stab(bing|s)?|slash(ing)?|cut(ting)?\s+(throat|neck))\b/gi,'dramatic gesture'],
+    [/\b(drug(s)?|cocaine|heroin|meth)\b/gi,''],
+    [/\b(terrorist|terrorism)\b/gi,'warrior'],
+    [/\b(torture|torturing)\b/gi,'dramatic scene'],
+    [/\b(suicide|suicidal)\b/gi,'contemplative moment'],
+    [/\b(war\s*zone)\b/gi,'historic battlefield landscape'],
+    [/\b(corpse|dead\s*body)\b/gi,'fallen hero'],
+  ];
+  for(const [rx,rep] of SAFE_SWAPS) p=p.replace(rx,rep);
+
+  // ═══ STEP 2: DETECT SCENE TYPE ═══
+  const lo=p.toLowerCase();
+  const isPortrait=/(portrait|person|man|woman|face|headshot|character|soldier|warrior|hero|model)/i.test(p);
+  const isLandscape=/(landscape|city|mountain|ocean|forest|sky|sunset|sunrise|field|desert|beach|island)/i.test(p);
+  const isProduct=/(product|shoe|watch|car|bottle|phone|item|object|food|drink)/i.test(p);
+  const isSciFi=/(sci-?fi|futuristic|cyberpunk|space|robot|alien|dystopian|neon)/i.test(p);
+  const isFantasy=/(fantasy|dragon|magic|medieval|castle|wizard|elf|mystic|enchanted)/i.test(p);
+  const isAnime=/(anime|manga|cartoon|illustration|drawn|sketch)/i.test(p);
+
+  // ═══ STEP 3: CAMERA & LENS (scene-specific) ═══
+  const HAS=t=>p.toLowerCase().includes(t);
+  const cam=[];
+  if(!HAS('shot on')&&!HAS('camera')&&!HAS('lens')&&!isAnime){
+    if(isPortrait){
+      cam.push(['shot on Canon EOS R5 with 85mm f/1.4 lens','shot on Sony A7R IV with 85mm f/1.8 lens',
+        'shot on Hasselblad with 80mm f/1.9 lens'][Math.floor(Math.random()*3)]);
+      cam.push('shallow depth of field','soft bokeh background');
+    }else if(isLandscape){
+      cam.push(['shot on Sony A7R IV with 24mm f/2.8 lens','shot on Canon EOS R5 with 16-35mm wide-angle lens',
+        'shot on Nikon Z9 with 14-24mm f/2.8 lens'][Math.floor(Math.random()*3)]);
+    }else if(isProduct){
+      cam.push('shot on Hasselblad','100mm macro lens','f/2.8 aperture');
+    }else{
+      cam.push(['shot on Canon EOS R5 with 50mm f/1.8 lens','shot on RED cinema camera with 35mm lens',
+        'shot on Sony A7 IV with 35mm f/1.4 lens'][Math.floor(Math.random()*3)]);
+    }
+  }
+
+  // ═══ STEP 4: LIGHTING (scene-specific) ═══
+  const lights=[];
+  if(!HAS('lighting')&&!HAS('light')&&!HAS('golden hour')&&!HAS('backlit')){
+    if(isPortrait){
+      lights.push(['Rembrandt lighting with warm golden key light from the left','soft diffused window light with subtle fill',
+        'dramatic side lighting with rim light separation','studio softbox key light at 45 degrees'][Math.floor(Math.random()*4)]);
+    }else if(isLandscape){
+      lights.push(['golden hour lighting with volumetric god rays','dramatic sunset with long shadows',
+        'blue hour atmosphere with soft ambient light','cinematic overcast light with moody clouds'][Math.floor(Math.random()*4)]);
+    }else if(isSciFi){
+      lights.push(['neon volumetric lighting with cyan and magenta glow','holographic rim light with dark atmospheric haze',
+        'backlit with volumetric fog and laser highlights'][Math.floor(Math.random()*3)]);
+    }else if(isFantasy){
+      lights.push(['ethereal bioluminescent glow with mystical atmosphere','warm firelight with dramatic god rays through mist',
+        'magical golden light with crystalline sparkle particles'][Math.floor(Math.random()*3)]);
+    }else{
+      lights.push(['cinematic lighting with dramatic shadows','volumetric atmosphere with natural rim lighting',
+        'professional studio lighting with subtle fill'][Math.floor(Math.random()*3)]);
+    }
+  }
+
+  // ═══ STEP 5: QUALITY & STYLE BOOSTERS ═══
+  const quality=[];
+  if(!isAnime){
+    if(!HAS('photorealistic')&&!HAS('hyper-realistic'))quality.push('hyper-realistic');
+    if(!HAS('8k')&&!HAS('4k'))quality.push('8K UHD');
+    if(!HAS('detailed'))quality.push('fine detail');
+    if(!HAS('sharp'))quality.push('tack sharp focus');
+  }
+
+  // Film stock (adds a distinct look)
+  if(!HAS('film')&&!HAS('kodak')&&!HAS('fuji')&&!isAnime&&Math.random()>0.5){
+    quality.push(['Kodak Portra 400 color tone','Fujifilm Velvia rich colors','cinematic film grain'][Math.floor(Math.random()*3)]);
+  }
+
+  // Style elevation
+  const stylePool=isPortrait?
+    ['award-winning portrait photography','professional color grading','magazine cover quality','high-end editorial']:
+    isLandscape?
+    ['award-winning nature photography','National Geographic quality','professional color grading','panoramic grandeur']:
+    isSciFi?
+    ['trending on ArtStation','octane render quality','Unreal Engine 5 graphics','concept art masterpiece']:
+    isFantasy?
+    ['trending on ArtStation','digital painting masterpiece','epic fantasy illustration','concept art quality']:
+    ['masterpiece quality','professional photography','award-winning','trending on ArtStation'];
+
+  const stylePick=stylePool.sort(()=>Math.random()-0.5).slice(0,2).filter(s=>!HAS(s.split(' ')[0].toLowerCase()));
+  quality.push(...stylePick);
+
+  // ═══ STEP 6: ASSEMBLE ═══
+  p=p.replace(/\s{2,}/g,' ').replace(/,\s*,/g,',').replace(/,\s*$/,'').trim();
+  const additions=[...cam,...lights,...quality].filter(Boolean);
+  if(additions.length) p+=', '+additions.join(', ');
+
+  ta.value=p;
+  window._pendingPrompt=p;
+  document.getElementById('char-num').textContent=p.length;
+  toast('Prompt enhanced — camera, lighting & quality added','success');
+}
+
+async function generate(){
+  const prompt=document.getElementById('prompt').value.trim();
+  if(!prompt){toast('Enter a prompt first','error');return}
+  if(generating)return;
+
+  const mi=window._selModel||0;
+  const model=MODELS[mi];
+  const rv=document.getElementById('ratio').value;
+  const steps=parseInt(document.getElementById('steps').value);
+  const RMAP={'1024x1024':'1:1','1344x768':'16:9','768x1344':'9:16'};
+  const [w,h]=rv.split('x').map(Number);
+
+  window._pendingPrompt=prompt;
+  generating=true;
+  render();
+
+  let prog=0;
+  const pi=setInterval(()=>{
+    prog=Math.min(prog+Math.random()*6,94);
+    const bar=document.getElementById('pbar');
+    const step=document.getElementById('pstep');
+    const pct=document.getElementById('ppct');
+    if(bar)bar.style.width=prog+'%';
+    if(pct)pct.textContent=Math.floor(prog)+'%';
+    if(step)step.textContent=prog<20?'Connecting to NVIDIA NIM...':prog<50?'Model is thinking...':
+      prog<75?'Rendering pixels...':prog<90?'Finalizing...':'Almost there...';
+  },400);
+
+  try{
+    let body;
+    if(model.fmt==='sd3'){
+      body={prompt,cfg_scale:7,steps,aspect_ratio:RMAP[rv],seed:Math.floor(Math.random()*2147483647)};
+    }else{
+      body={prompt,width:w,height:h};
+    }
+
+    const res=await fetch(PROXY,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({endpoint:model.endpoint,body})
+    });
+
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.detail||e.error||'HTTP '+res.status)}
+
+    const data=await res.json();
+    if(!data.filename)throw new Error(data.detail||data.error||'No image returned');
+
+    clearInterval(pi);
+    const bar=document.getElementById('pbar');if(bar)bar.style.width='100%';
+
+    images.unshift({url:data.filename,prompt,model:model.short,date:new Date().toISOString()});
+    if(images.length>50)images=images.slice(0,50);
+    await saveImages();
+    genCount++;
+    localStorage.setItem('kayou-gen-count',genCount);
+    toast('Image generated!','success');
+  }catch(e){
+    clearInterval(pi);
+    toast(e.message,'error');
+    console.error(e);
+  }
+  generating=false;
+  await loadImages();
+  render();
+}
+
+function openLightbox(i){
+  const img=images[i];
+  document.getElementById('lb-img').src=img.url;
+  document.getElementById('lb-info').textContent=img.prompt;
+  document.getElementById('lightbox').classList.add('active');
+}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('active')}
+
+function downloadImg(i){
+  const a=document.createElement('a');a.href=images[i].url;
+  a.download='kayou-image-'+i+'.jpg';a.click();
+  toast('Downloading...','success');
+}
+function copyPrompt(i){
+  navigator.clipboard.writeText(images[i].prompt);
+  toast('Prompt copied!','success');
+}
+async function deleteImg(i){
+  const img=images[i];
+  const fname=img.url.split('/').pop();
+  await fetch('/api/image/'+fname,{method:'DELETE'});
+  images.splice(i,1);
+  await saveImages();
+  render();
+}
+async function clearGallery(){
+  if(!confirm('Clear all images?'))return;
+  for(const img of images){const f=img.url.split('/').pop();await fetch('/api/image/'+f,{method:'DELETE'});}
+  images=[];await saveImages();render();
+}
+
+function remixImg(i){
+  const img=images[i];
+  window._lastPrompt=img.prompt+', variation, different angle';
+  window._selModel=0;
+  render();
+  document.getElementById('prompt').focus();
+  toast('Prompt loaded — edit it and generate a variation','success');
+}
+
+function upscaleImg(i){
+  const img=images[i];
+  window._lastPrompt=img.prompt+', ultra detailed, 8K resolution, masterpiece quality';
+  // Use SD3 with 50 steps for best upscale quality
+  window._selModel=0;
+  render();
+  // Set steps to 50
+  const stepsEl=document.getElementById('steps');
+  if(stepsEl)stepsEl.value='50';
+  document.getElementById('prompt').focus();
+  toast('Upscale prompt ready — hit Generate for HQ version','success');
+}
+
+function clearRef(){
+  window._refImg=null;
+  render();
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const ic=document.getElementById('toast-icon');
+  const m=document.getElementById('toast-msg');
+  m.textContent=msg;
+  ic.textContent=type==='error'?'error':'check_circle';
+  t.className='toast show '+type;
+  setTimeout(()=>t.className='toast',3500);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeLightbox();
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter')generate();
+});
+
+// Health check — pings each model every 60s
+async function checkModelHealth(){
+  let changed=false;
+  for(let i=0;i<MODELS.length;i++){
+    const prev=MODELS[i].status;
+    try{
+      const r=await fetch('/api/health',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({endpoint:MODELS[i].endpoint,fmt:MODELS[i].fmt})});
+      const d=await r.json();
+      MODELS[i].status=d.ok?'ok':'down';
+    }catch(e){MODELS[i].status='down';}
+    if(prev!==MODELS[i].status)changed=true;
+  }
+  // Only update the status dot, never full re-render
+  const dot=document.querySelector('.model-picker-btn .status-dot');
+  if(dot){
+    const m=MODELS[window._selModel||0];
+    dot.className='status-dot '+m.status;
+  }
+  if(changed)toast(MODELS.filter(m=>m.status==='ok').length+'/'+MODELS.length+' models online','success');
+}
+
+loadImages().then(()=>{render();checkModelHealth();setInterval(checkModelHealth,60000)});
+</script>
+</body>
+</html>
