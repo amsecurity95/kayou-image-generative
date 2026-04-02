@@ -4,7 +4,7 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3700;
 
-const API_KEY = process.env.NVIDIA_API_KEY || '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';
+const API_KEY = process.env.NVIDIA_API_KEY;
 const IMG_DIR = path.join(__dirname, 'public', 'images');
 const META_FILE = path.join(__dirname, 'images-meta.json');
 
