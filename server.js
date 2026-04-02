@@ -138,9 +138,4 @@ app.post('/api/health', async (req, res) => {
   }
 });
 
-app.get('/api/debug-key', (req, res) => {
-  const key = API_KEY || '';
-  res.json({ hasKey: !!key, length: key.length, prefix: key.slice(0, 10) });
-});
-
 app.listen(PORT, () => console.log(`Kayou Image Generative running at http://localhost:${PORT}`));
